@@ -282,6 +282,7 @@ nsduh_import = function(html, table_num){
       percent = as.numeric(percent)) |>
     filter(!(State %in% c("Total U.S.", "Northeast", "Midwest", "South", "West")))
   
+  data
 }
 
 example = nsduh_import(nsduh_html, table_num = 1)
