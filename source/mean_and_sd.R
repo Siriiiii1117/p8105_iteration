@@ -1,12 +1,8 @@
-# mean_and_sd
-#
-# Takes a numeric input vector and computes the mean and sd
-#
-# @param x the input vector (must be numeric with 5 or more elements)
-#
-# @returns a dataframe containing the mean and sd of x
-#
-
+#' mean_and_sd
+#'
+#' @param x 
+#'
+#' @returns tibble with sample mean and sd
 
 mean_and_sd = function(x){
   
