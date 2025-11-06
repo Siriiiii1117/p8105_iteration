@@ -79,7 +79,7 @@ sim_results_df =
 sim_results_df = 
   expand_grid(
     sample_size = c(30, 60, 90, 120),
-    iter = 1:100
+    iter = 1:1000
   ) |> 
   mutate(
     results = map(sample_size, sim_mean_sd)
@@ -99,4 +99,147 @@ sim_results_df |>
   ggplot(aes(x = sample_size, y = mu_hat)) +
   geom_violin()
 ```
+
+
+Let's try to summariz
+
+```{r}
+sim_results_df |> 
+  group_by(sample_size) |> 
+  summarize(
+    emp_mean = mean(mu_hat),
+    emp_sd = sd(mu_hat)
+  )
+```
+
+
+
+
+## Simple Linear Regression
+
+```{r}
+sim_df = 
+  tibble(
+    x = rnorm(30, mean = 1, sd = 1),
+    y = 2 + 3 * x + rnorm(30, 0 ,1)
+  )
+
+sim_df |> 
+  ggplot(aes(x = x, y = y)) + 
+  geom_point()
+
+slr_fit = lm(y ~ x, data = sim_df)
+
+coef(slr_fit)
+```
+
+
+
+turn this into function
+
+```{r}
+sim_regression = function(n_subj, beta_0 = 2, beta_1 = 3){
+  
+  sim_df = 
+    tibble(
+      x = rnorm(n_subj, mean = 1, sd = 1),
+      y = beta_0 + beta_1 * x + rnorm(n_subj, 0 ,1)
+    )
+
+  slr_fit = lm(y ~ x, data = sim_df)
+
+  tibble(
+    beta_0_hat = coef(slr_fit)[1],
+    beta_1_hat = coef(slr_fit)[2]
+  )
+}
+```
+
+```{r}
+sim_regression(n_subj = 30)
+```
+
+
+```{r}
+output = vector("list", length = 500)
+
+for (i in 1:500){
+  output[[i]] = sim_regression(n_subj = 30)
+}
+
+output |> 
+  bind_rows()
+```
+
+
+
+```{r}
+slr_sim_results_df = 
+  expand_grid(
+    sample_size = 30,
+    iter = 1:500
+  ) |> 
+  mutate(
+    results = map(sample_size, sim_regression)
+  ) |> 
+  unnest(results)
+
+slr_sim_results_df |> 
+  ggplot(aes(x = beta_0_hat, y = beta_1_hat)) +
+  geom_point()
+```
+
+
+## One more example
+
+```{r}
+birthdays = sample(1:366, 5, replace = TRUE)
+
+repeated_bday = length(unique(birthdays)) < 5
+
+repeated_bday
+```
+
+put this in a function
+
+```{r}
+bday_sim = function(n_inroom){
+  
+  birthdays = sample(1:366, n_inroom, replace = TRUE)
+
+  repeated_bday = length(unique(birthdays)) < n_inroom
+
+  repeated_bday
+  
+}
+```
+
+
+```{r}
+bday_sim_results = 
+  expand_grid(
+    bdays = 5:50,
+    iter = 1:2500
+  ) |> 
+  mutate(
+    result = map_lgl(bdays, bday_sim)
+  ) |> 
+  group_by(
+    bdays
+  ) |> 
+  summarize(
+    prob_repeat = mean(result)
+  )
+```
+
+
+plot this
+
+```{r}
+bday_sim_results |> 
+  ggplot(aes(x = bdays, y = prob_repeat)) + 
+  geom_point() + 
+  geom_line()
+```
+
 
